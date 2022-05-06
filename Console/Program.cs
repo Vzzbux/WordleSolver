@@ -2,8 +2,8 @@
 using WordleSolver.Core;
 
 var words = new WordList();
-words.Load(@"words.txt", true);
 words.Load(@"wordlewords.txt", false);
+words.Load(@"words.txt", true, true);
 
 Console.Write("(I)nteractive or (P)lay self?: ");
 var key = Console.ReadKey();
@@ -75,7 +75,8 @@ void PlaySelf(WordList words, int numGames = 100)
         var game = new Game(words);
         var guesser = new NextWordGuesser();
 
-        var guess = words.GetRandomWord().Value;
+        //var guess = words.GetRandomWord().Value;
+        var guess = "crane";
         Console.WriteLine($"Game {c}:");
         var mask = new MaskColour[words.WordLength];
         do

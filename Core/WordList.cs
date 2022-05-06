@@ -14,7 +14,13 @@
             _random = new Random();
         }
 
-        public void Load(string path, bool includeFrequency = false)
+        /// <summary>
+        /// Load a list of words from a file
+        /// </summary>
+        /// <param name="path">Path of the file to load</param>
+        /// <param name="includeFrequency">File contains a frequency property for each word to load, denoting how common the word is</param>
+        /// <param name="onlyUpdateFrequency">When loading word lists with frequencies, just update the frequencies of words that have already been added.</param>
+        public void Load(string path, bool includeFrequency = false, bool onlyUpdateFrequency = false)
         {
             foreach (var line in File.ReadLines(path))
             {
@@ -29,7 +35,14 @@
                     var word = new Word(wordValue, wordFreq);
                     if (word.Value.Length == WordLength)
                     {
-                        this.Add(word);
+                        if (this.Contains(word))
+                        {
+                            this.Remove(word);
+                            this.Add(word);
+                        } else if (!onlyUpdateFrequency)
+                        {
+                            this.Add(word);
+                        }
                     }
                 }
                 else
