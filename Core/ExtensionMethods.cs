@@ -35,7 +35,8 @@
             {
                 MaskColour.Green => ConsoleColor.DarkGreen,
                 MaskColour.Yellow => ConsoleColor.DarkYellow,
-                _ => ConsoleColor.DarkGray
+                MaskColour.Grey => ConsoleColor.DarkGray,
+                _ => ConsoleColor.Gray
             };
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 using WordleSolver.Core;
 
 var words = new WordList();
@@ -30,38 +31,69 @@ void Interactive(WordList words)
     var exit = false;
     while (!exit)
     {
+        Console.WriteLine("[Enter the 5-letter word guessed on the last turn]");
         Console.Write("Guess: ");
-        var guess = Console.ReadLine()?.ToLower().Trim();
-        if (guess == null || guess.Length != words.WordLength)
+        var guessWord = Console.ReadLine()?.ToLower().Trim();
+        if (guessWord == null || guessWord.Length != words.WordLength)
         {
-            exit = true;
+            Console.WriteLine("Must be a 5-letter word.");
             continue;
         }
 
-        Console.Write(" Mask: ");
-        var mask = Console.ReadLine()?.ToUpper().PadRight(words.WordLength);
-        if (mask == null || mask.Length != words.WordLength)
+        Console.WriteLine("[Now enter the mask response. Use Y for yellow, G for green, any other character for grey]");
+        Console.SetCursorPosition(7, Console.CursorTop - 2);
+        var mask = new MaskColour[guessWord.Length];
+        for (var i = 0; i < guessWord.Length; i++)
         {
-            exit = true;
-            continue;
+            var maskKey = Console.ReadKey(true);
+            if (maskKey.Key == ConsoleKey.Backspace)
+            {
+                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                Console.ForegroundColor = MaskColour.Unset.ToConsoleColor();
+                i--;
+                Console.Write(guessWord[i]);
+                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                i--;
+                continue;
+            }
+            mask[i] = maskKey.Key switch
+            {
+                ConsoleKey.Y => MaskColour.Yellow,
+                ConsoleKey.G => MaskColour.Green,
+                _ => MaskColour.Grey
+            };
+            Console.ForegroundColor = mask[i].ToConsoleColor();
+            Console.Write(guessWord[i]);
         }
+
+        guesser.AddGuess(new Guess(guessWord, mask));
 
         Console.Clear();
-        Console.WriteLine($"Guess: {guess}");
-        Console.WriteLine($"Mask : {mask}");
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.WriteLine($"Guesses so far: ");
+        foreach (var guess in guesser.Guesses)
+        {
+            for (var i = 0; i < guess.Length; i++)
+            {
+                Console.ForegroundColor = guess.Mask[i].ToConsoleColor();
+                Console.Write(guess.Word[i]);
+            }
+            Console.WriteLine();
+        }
 
-        guesser.AddGuess(new Guess(guess, mask));
+        Console.ForegroundColor = ConsoleColor.Gray;
+
         var candidateWords = guesser.GetValidWords(words).ToArray();
 
-        Console.WriteLine("");
-        Console.WriteLine("Valid guesses:");
+        Console.WriteLine("Next valid guesses:");
 
         foreach (var word in candidateWords)
         {
             Console.WriteLine($"{word.Value} {word.Frequency}");
         }
 
-        Console.WriteLine($"{candidateWords.Length} words");
+        Console.WriteLine($"[{candidateWords.Length} words]");
+        Console.WriteLine();
     }
 }
 
@@ -85,11 +117,11 @@ void PlaySelf(WordList words, int numGames = 100)
             {
                 guesser.AddGuess(new Guess(guess, mask));
                 var guesses = guesser.GetValidWords(words);
-                guess = guesses.FirstOrDefault().Value;
+                guess = guesses.LastOrDefault().Value;
             }
 
             mask = game.Guess(guess);
-            for (byte i = 0; i < guess.Length; i++)
+            for (var i = 0; i < guess.Length; i++)
             {
                 Console.ForegroundColor = mask[i].ToConsoleColor();
                 Console.Write(guess[i]);
@@ -99,7 +131,7 @@ void PlaySelf(WordList words, int numGames = 100)
             //Console.WriteLine($"{guess} : {mask.ToChars()}");
         } while (!game.Won);
 
-        Console.ForegroundColor = ConsoleColor.White;
+        Console.ForegroundColor = ConsoleColor.Gray;
         Console.WriteLine($"Guessed {guess} in {game.Tries} tries");
         Console.WriteLine();
         tries.Add(game.Tries);

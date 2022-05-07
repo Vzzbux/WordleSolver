@@ -113,9 +113,9 @@
             //Prefer words with more unique letters, to maximise search space,
             //then prefer more common words
             return candidateWords
-                .OrderByDescending(w => w.UniqueLetters)
-                .ThenByDescending(w => w.Frequency)
-                .ThenBy(w => w.Value);
+                .OrderBy(w => w.UniqueLetters)
+                .ThenBy(w => w.Frequency)
+                .ThenByDescending(w => w.Value);
         }
     }
 }
